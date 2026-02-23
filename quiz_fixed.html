@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קוויז שיווק מקוון</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d1a;
+    --card: #141428;
+    --border: #2a2a4a;
+    --accent: #7c6af7;
+    --accent2: #f7c66a;
+    --text: #e8e8f0;
+    --muted: #7878a0;
+    --correct: #4ade80;
+    --wrong: #f87171;
+    --correct-bg: rgba(74,222,128,0.12);
+    --wrong-bg: rgba(248,113,113,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* Background effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    right: -20%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(124,106,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    left: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(247,198,106,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(124,106,247,0.2);
+    border: 1px solid rgba(124,106,247,0.4);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #fff 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  /* Question card */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.5s forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .question-text {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    color: #fff;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    text-align: right;
+    direction: rtl;
+    color: var(--text);
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    width: 100%;
+  }
+
+  .option:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(124,106,247,0.08);
+    transform: translateX(-3px);
+  }
+
+  .option:disabled { cursor: default; }
+
+  .option-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .option.correct-answer {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: #fff;
+  }
+  .option.correct-answer .option-dot {
+    background: var(--correct);
+    border-color: var(--correct);
+  }
+  .option.wrong-answer {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: #fff;
+  }
+  .option.wrong-answer .option-dot {
+    background: var(--wrong);
+    border-color: var(--wrong);
+  }
+  .option.selected-correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+  }
+  .option.selected-correct .option-dot {
+    background: var(--correct);
+    border-color: var(--correct);
+  }
+
+  .check-icon {
+    font-size: 12px;
+    color: white;
+    display: none;
+  }
+  .option.correct-answer .check-icon,
+  .option.wrong-answer .check-icon,
+  .option.selected-correct .check-icon { display: block; }
+
+  /* Explanation */
+  .explanation {
+    margin-top: 20px;
+    padding: 16px 18px;
+    background: rgba(124,106,247,0.1);
+    border: 1px solid rgba(124,106,247,0.25);
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #c0c0e0;
+    display: none;
+  }
+  .explanation.visible { display: block; }
+  .explanation strong {
+    color: var(--accent2);
+  }
+
+  /* True/False */
+  .tf-options {
+    display: flex;
+    gap: 12px;
+  }
+  .tf-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tf-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(124,106,247,0.08);
+  }
+  .tf-btn:disabled { cursor: default; }
+  .tf-btn.correct-answer {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: #fff;
+  }
+  .tf-btn.wrong-answer {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: #fff;
+  }
+
+  /* Score panel */
+  #score-panel {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, var(--card) 0%, rgba(20,20,40,0.95) 100%);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    z-index: 100;
+  }
+
+  .score-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .score-circle-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    flex-shrink: 0;
+  }
+
+  #scoreCircle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) 0deg calc(var(--pct) * 3.6deg), var(--border) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #scoreNum {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--accent);
+  }
+
+  .score-info h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+
+  .score-info p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .restart-btn {
+    margin-top: 20px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .restart-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 600px) {
+    .score-wrap {
+      flex-direction: column;
+      text-align: center;
+    }
+    #score-panel { padding-bottom: 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="tag">קוויז ניהול שיווק</div>
+    <h1>בחן את הידע שלך</h1>
+    <p>סדרת שאלות מעניינות בניהול השיווק המודרני</p>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 20</div>
+  </div>
+
+  <div id="quiz-area"></div>
+</div>
+
+<div id="score-panel">
+  <div class="score-wrap">
+    <div class="score-circle-wrap">
+      <div id="scoreCircle"><span id="scoreNum">0/0</span></div>
+    </div>
+    <div class="score-info">
+      <h3 id="scoreTitle">מה הציון שלך?</h3>
+      <p id="scoreDesc">לקח זמן חישוב...</p>
+      <button class="restart-btn" onclick="restart()">🔄 נסה שוב</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questionsData = [
+  // ---- מטלה 1 ----
+  {
+    q: "השיווק המודרני עבר שלוש מהפכות עיקריות, שהובילו להעברת כוח מהיצרנים והמשווקים אל הלקוחות.",
+    type: "tf",
+    answer: true,
+    explanation: "המהפכות (התעשייתית, טכנולוגיית המידע והדיגיטלית) אכן העבירו את המיקוד מייצור המוני לצרכים ספציפיים של הלקוח, שיש לו כיום גישה לידע רב וכוח בחירה."
+  },
+  {
+    q: "מה ההבדל העיקרי בין 'צורך' ל'רצון' בשיווק?",
+    type: "mc",
+    options: ["אין הבדל בין השניים", "צורך הוא אוניברסלי ונובע מהמבנה הביולוגי/פסיכולוגי, בעוד רצון הוא תרגום ספציפי של צורך למוצר/מותג", "צורך זה יקר יותר", "רצון הוא ביולוגי בלבד"],
+    answer: 1,
+    explanation: "צורך הוא בסיסי (רעב), רצון הוא הדרך לספק אותו (המבורגר של מקדונלד'ס)."
+  },
+  {
+    q: "איזה מהבאים אינו אחד משלושת הגורמים המשפיעים על התנהגות הצרכן בשווקי B2C?",
+    type: "mc",
+    options: ["המימד הכלכלי (רמת הכנסה, מצב המשק)", "הגורם התרבותי", "הגורם החברתי", "הגורם הפסיכולוגי"],
+    answer: 0,
+    explanation: "על אף שזה גורם משפיע מאוד, במודלים הקלאסיים של התנהגות צרכן, שלושת הממדים המרכזיים הם: תרבותי, חברתי ופסיכולוגי."
+  },
+  {
+    q: "בניגוד לשווקי C2B, שווקי B2B מאופיינים ברכש מקצועי ופורמלי, היקפי עסקאות גדולים יותר, וזמני סגירת עסקה ארוכים יותר.",
+    type: "tf",
+    answer: true,
+    explanation: "במכירה לעסקים (B2B) יש תהליכי קבלת החלטות מורכבים יותר המערבים אנשי מקצוע וחוזים."
+  },
+  {
+    q: "מהי מטרת השימוש במפות מסע לקוח (Customer Journey Maps)?",
+    type: "mc",
+    options: ["למכור לקוחות נוספים (Upselling)", "לתעד ולהבין לעומק את התחנות השונות שהלקוח עובר במערכת היחסים שלו עם המותג/חברה", "לחשב את רווחיות הלקוח", "למדוד את שביעות רצון הלקוח הכוללת"],
+    answer: 1,
+    explanation: "המפה נועדה לאתר את 'נקודות המגע' (Touchpoints) ולשפר את חווית הלקוח הכוללת."
+  },
+  {
+    q: "בשוק הגבינות, סך המכירות הוא מיליארד ש\"ח. לתנובה יש מכירות של 450 מיליון ש\"ח. מהו נתח השוק (באחוזים) של תנובה?",
+    type: "mc",
+    options: ["4.5%", "45%", "50%", "לא ניתן לדעת"],
+    answer: 1,
+    explanation: "החישוב הוא: (450,000,000 / 1,000,000,000) * 100 = 45%"
+  },
+  {
+    q: "מהו הסדר הנכון של שלושת השלבים באסטרטגיה השיווקית?",
+    type: "mc",
+    options: ["פילוח → כיוון → מיצוב", "מיצוב → כיוון → פילוח", "כיוון → פילוח → מיצוב", "כיוון → מיצוב → פילוח"],
+    answer: 0,
+    explanation: "קודם מחלקים את השוק לקבוצות (פילוח), בוחרים באיזו קבוצה להתמקד (כיוון) ואז בונים את התפיסה של המותג (מיצוב)."
+  },
+  {
+    q: "מידע הנקלט מהחושים נשמר לפרק זמן קצר מאוד (שניות בודדות) באיזה מנגנון זיכרון?",
+    type: "mc",
+    options: ["זיכרון לטווח ארוך", "זיכרון לטווח קצר", "זיכרון חושי", "זיכרון ספונטני"],
+    answer: 2,
+    explanation: "זהו השלב הראשון בעיבוד המידע (Sensory Memory), לפני שהוא עובר לזיכרון לטווח קצר."
+  },
+  {
+    q: "מודל פישביין להערכת עמדות נקרא מודל 'מפצה' מכיוון ש...",
+    type: "mc",
+    options: ["הוא משמש רק למוצרים יקרים", "הוא מניח שיתרון בתכונה אחת של מותג יכול לפצות על חיסרון בתכונה אחרת", "הוא משמש רק לשיווק דיגיטלי", "הוא מניח שכל התכונות שוות משקל"],
+    answer: 1,
+    explanation: "לדוגמה, מחיר גבוה (חיסרון) יכול להיות מפוצה על ידי איכות מעולה (יתרון) בציון הכולל של הצרכן."
+  },
+  {
+    q: "רשת סופרמרקטים שקונה גבינה מחברת תנובה כדי למכור אותה למשקי בית היא דוגמה ללקוח מסוג:",
+    type: "mc",
+    options: ["לקוח פרטי (B2C)", "לקוח מוסדי", "לקוח עסקי", "לקוח תעשייתי"],
+    answer: 2,
+    explanation: "מכיוון שהסופרמרקט קונה את הסחורה למטרות רווח (מכירה חוזרת) ולא לצריכה עצמית, מדובר ב-B2B (עסק לעסק)."
+  },
+
+  // ---- מטלה 2 ----
+  {
+    q: "מהי המטרה העיקרית של שלב הפילוח (Segmentation) באסטרטגיה השיווקית?",
+    type: "mc",
+    options: ["לפתח הצעת ערך ייחודית (מיצוב) לשוק כולו", "לחלק את השוק לקבוצות הומוגניות יחסית של לקוחות עם צרכים ורצונות דומים ושונים מפלחים אחרים", "לקבוע את המחיר האופטימלי לכל קבוצת לקוחות", "לבחור את הלקוחות הרווחיים ביותר עבור החברה"],
+    answer: 1,
+    explanation: "פילוח נועד ליצור קבוצות פנימיות דומות כדי שנוכל להתאים להן תמהיל שיווקי ספציפי."
+  },
+  {
+    q: "בשלב הכיוון (Targeting), החברה תמיד תבחר את פלח השוק הגדול ביותר.",
+    type: "tf",
+    answer: false,
+    explanation: "בחירת פלח שוק מתבססת על אטרקטיביות, רווחיות והתאמה ליכולות החברה. לפעמים פלח קטן (נישה) הוא רווחי יותר."
+  },
+  {
+    q: "מיצוב (Positioning) יעיל צריך להיות אטרקטיבי לפלח המטרה, מבודל מהמתחרים, וניתן לביצוע על ידי החברה.",
+    type: "tf",
+    answer: true,
+    explanation: "אלו שלושת עמודי התווך של מיצוב מוצלח — רלוונטיות ללקוח, בידול מהמתחרים ויכולת יישום בפועל."
+  },
+  {
+    q: "מהי 'נכסיות מותג' (Brand Equity)?",
+    type: "mc",
+    options: ["הערך הכספי הכולל של החברה", "מידת הנאמנות של הלקוחות למותג", "הערך הנוסף (או המופחת) שהמותג יוצר למוצר מעבר לערכו הפונקציונלי, המתבטא לעיתים קרובות בנכונות לשלם פרמיה", "מספר המוצרים הנמכרים תחת שם המותג"],
+    answer: 2,
+    explanation: "נכסיות מותג היא הערך המוסף שמעניק השם למוצר 'גנרי'."
+  },
+  {
+    q: "'מותג פרטי' (Private Label) הוא מותג המשווק על ידי היצרן עצמו ללא שם מותג כלל.",
+    type: "tf",
+    answer: false,
+    explanation: "מותג פרטי הוא מותג שבבעלות הקמעונאי (כמו 'שופרסל', 'Life' של סופר-פארם) ולא בבעלות היצרן."
+  },
+
+  // ---- מטלה 3 ----
+  {
+    q: "במודל מחזור חיי המוצר, שלב ה'בגרות' (Maturity) מאופיין בדרך כלל בשיא המכירות וברווחיות מקסימלית.",
+    type: "tf",
+    answer: true,
+    explanation: "בשלב הבגרות, המכירות מגיעות לשיאן. למרות שהתחרות גוברת, זהו לרוב השלב הרווחי ביותר כי עלויות הייצור והשיווק יורדות."
+  },
+  {
+    q: "המחרת 'עלות פלוס' (Cost-Plus Pricing) נחשבת לשיטת ההמחרה המכוונת ביותר לשוק, מכיוון שהיא מתחשבת בערך הנתפס על ידי הלקוח.",
+    type: "tf",
+    answer: false,
+    explanation: "זוהי שיטה הממוקדת במוצר/חברה (עלויות פלוס מרווח), ולא בשוק. השיטה שמתחשבת בערך הנתפס נקראת 'המחרה מבוססת ערך'."
+  },
+  {
+    q: "שיווק ישיר לצרכן (D2C) דרך האינטרנט מבטל לחלוטין את הצורך בגורמי ביניים כמו קמעונאים או סיטונאים בצינור השיווק.",
+    type: "tf",
+    answer: true,
+    explanation: "מודל D2C (Direct to Consumer) אכן מבוסס על דילוג מעל הקמעונאים והסיטונאים ומכירה ישירה מהיצרן ללקוח הקצה דרך פלטפורמות דיגיטליות."
+  },
+  {
+    q: "גישת השיווק החברתי (Societal Marketing) טוענת שחברות צריכות להתמקד אך ורק במקסום שביעות רצון הלקוח לטווח קצר וברווחי החברה.",
+    type: "tf",
+    answer: false,
+    explanation: "גישה זו טוענת שחברה צריכה לאזן בין רווחי החברה, רצונות הצרכן והאינטרסים ארוכי הטווח של החברה/החברה האנושית."
+  },
+  {
+    q: "SEO (Search Engine Optimization) כרוך בתשלום למנועי חיפוש כמו גוגל עבור מיקום גבוה יותר בתוצאות החיפוש.",
+    type: "tf",
+    answer: false,
+    explanation: "SEO מתמקד בתוצאות האורגניות (ללא תשלום) באמצעות שיפור האתר. תשלום עבור מיקום גבוה נקרא SEM או PPC (כמו Google Ads)."
+  },
+  {
+    q: "איזו אסטרטגיית המחרה כוללת קביעת מחיר ראשוני גבוה למוצר חדש והורדתו ההדרגתית לאורך זמן?",
+    type: "mc",
+    options: ["המחרה תחרותית (Competitive Pricing)", "המחרת עלות פלוס (Cost-Plus Pricing)", "המחרת חדירה (Penetration Pricing)", "המחרת גריפה (Price Skimming)"],
+    answer: 3,
+    explanation: "כמו בהשקת אייפון חדש — מתחילים גבוה כדי 'לגרוף' את השכבות שמוכנות לשלם הרבה, ולאחר מכן מורידים את המחיר."
+  },
+  {
+    q: "על פי מטריצת BCG, מוצר בעל נתח שוק גבוה בשוק עם צמיחה נמוכה נקרא:",
+    type: "mc",
+    options: ["סימן שאלה (Question Mark)", "כלב (Dog)", "פרה חולבת (Cash Cow)", "כוכב (Star)"],
+    answer: 2,
+    explanation: "אלו מוצרים מבוססים שמייצרים הרבה מזומנים (נתח שוק גבוה) ואינם דורשים השקעה רבה כי השוק כבר לא צומח."
+  },
+  {
+    q: "איזה מרכיב בתמהיל התקשורת עוסק בדרך כלל בניהול תדמית החברה ובהשגת סיקור תקשורתי שאינו בתשלום ישיר?",
+    type: "mc",
+    options: ["מכירה אישית (Personal Selling)", "יחסי ציבור (Public Relations)", "פרסום (Advertising)", "קידום מכירות (Sales Promotion)"],
+    answer: 1,
+    explanation: "בניגוד לפרסום שהוא בתשלום, יחסי ציבור עוסקים ביצירת אמון וקבלת חשיפה בחדשות או בכתבות 'בחינם'."
+  },
+  {
+    q: "חברה המוכרת את אותו המוצר בכל העולם, אך מתאימה את מסרי הפרסום שלה לנורמות התרבותיות המקומיות, משתמשת באיזו אסטרטגיית שיווק גלובלית?",
+    type: "mc",
+    options: ["מתן רישיונות (Licensing)", "שיווק גלובלי אחיד", "שיווק גלובלי מותאם (גלוקליזציה - \"Think Global, Act Local\")", "ייצוא (Exporting)"],
+    answer: 2,
+    explanation: "זו הגישה המשלבת סטנדרטיזציה של המוצר יחד עם התאמה (Adaptation) של התקשורת השיווקית לתרבות המקומית."
+  },
+  {
+    q: "חישוב החזר על ההשקעה (ROI) בקמפיין שיווק דיגיטלי כולל בדרך כלל השוואה בין:",
+    type: "mc",
+    options: ["שיעור ההמרה (Conversion Rate) לשיעור שימור הלקוחות (Retention Rate)", "סך הביקורים (Total Visits) לשיעור הנטישה (Bounce Rate)", "כניסות חדשות (New Sessions) למקורות התנועה (Traffic Channels)", "ערך הלקוח (CV) לעלות לליד/ביקור (CPL)"],
+    answer: 3,
+    explanation: "ROI מודד את הרווח הכלכלי ביחס להשקעה. השוואה בין כמה עלה לנו להביא לקוח לבין הערך שהוא מייצר לנו היא המדד המהותי ביותר."
+  }
+];
+
+let answered = 0;
+let score = 0;
+let questions = [];
+const total = questionsData.length;
+
+function shuffleQuestions() {
+  questions = [...questionsData].map(q => ({ ...q })).sort(() => Math.random() - 0.5);
+  questions.forEach(q => {
+    if (q.type === 'mc') {
+      const correctText = q.options[q.answer]; // save correct answer text before shuffle
+      q.options = [...q.options].sort(() => Math.random() - 0.5);
+      q.answer = q.options.indexOf(correctText); // update index to new position
+    }
+  });
+}
+
+function renderQuiz() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = '';
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.innerHTML = `
+      <div class="question-num">שאלה ${i + 1} מתוך ${total}</div>
+      <div class="question-text">${q.q}</div>
+      ${q.type === 'tf' ? renderTF(i) : renderMC(q, i)}
+      <div class="explanation" id="exp-${i}"></div>
+    `;
+    area.appendChild(card);
+  });
+}
+
+function renderTF(i) {
+  return `<div class="tf-options">
+    <button class="tf-btn" onclick="answerTF(${i}, true, this)">✓ נכון</button>
+    <button class="tf-btn" onclick="answerTF(${i}, false, this)">✗ לא נכון</button>
+  </div>`;
+}
+
+function renderMC(q, i) {
+  return `<div class="options">${q.options.map((opt, j) => `
+    <button class="option" onclick="answerMC(${i}, ${j}, this)">
+      <div class="option-dot"><span class="check-icon">✓</span></div>
+      <span>${opt}</span>
+    </button>`).join('')}</div>`;
+}
+
+function answerTF(qi, val, btn) {
+  const q = questions[qi];
+  const parent = btn.closest('.question-card');
+  const btns = parent.querySelectorAll('.tf-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const correct = val === q.answer;
+  if (correct) { btn.classList.add('correct-answer'); score++; }
+  else {
+    btn.classList.add('wrong-answer');
+    btns.forEach(b => {
+      if ((b.textContent.includes('נכון') && q.answer === true) ||
+          (b.textContent.includes('לא נכון') && q.answer === false)) {
+        b.classList.add('correct-answer');
+      }
+    });
+  }
+  showExp(qi, q.explanation);
+  updateProgress();
+}
+
+function answerMC(qi, chosen, btn) {
+  const q = questions[qi];
+  const parent = btn.closest('.question-card');
+  const opts = parent.querySelectorAll('.option');
+  opts.forEach(o => o.disabled = true);
+
+  if (chosen === q.answer) {
+    btn.classList.add('selected-correct');
+    score++;
+  } else {
+    btn.classList.add('wrong-answer');
+    opts[q.answer].classList.add('correct-answer');
+  }
+  showExp(qi, q.explanation);
+  updateProgress();
+}
+
+function showExp(qi, text) {
+  const el = document.getElementById(`exp-${qi}`);
+  el.innerHTML = `<strong>הסבר:</strong> ${text}`;
+  el.classList.add('visible');
+  answered++;
+  if (answered === total) setTimeout(showScore, 800);
+}
+
+function updateProgress() {
+  const pct = Math.round((answered / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${answered} / ${total}`;
+}
+
+function showScore() {
+  document.getElementById('score-panel').style.display = 'block';
+  document.getElementById('score-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('scoreCircle').style.setProperty('--pct', pct + '%');
+  document.getElementById('scoreNum').textContent = `${score}/${total}`;
+
+  let title, desc;
+  if (pct >= 90) { title = '🏆 מעולה!'; desc = `ענית נכון על ${score} מתוך ${total} שאלות. תוצאה יוצאת דופן!`; }
+  else if (pct >= 70) { title = '👏 כל הכבוד!'; desc = `ענית נכון על ${score} מתוך ${total} שאלות. תוצאה טובה מאוד!`; }
+  else if (pct >= 50) { title = '📚 ממשיכים ללמוד'; desc = `ענית נכון על ${score} מתוך ${total} שאלות. עוד קצת חזרה ותצליח!`; }
+  else { title = '💪 אל תתייאש!'; desc = `ענית נכון על ${score} מתוך ${total} שאלות. כדאי לחזור על החומר.`; }
+
+  document.getElementById('scoreTitle').textContent = title;
+  document.getElementById('scoreDesc').textContent = desc;
+}
+
+function restart() {
+  answered = 0; score = 0;
+  document.getElementById('score-panel').style.display = 'none';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressLabel').textContent = `0 / ${total}`;
+  shuffleQuestions();
+  renderQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+shuffleQuestions();
+renderQuiz();
+</script>
+</body>
+</html>
